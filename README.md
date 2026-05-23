@@ -354,6 +354,14 @@ http://localhost:8080/swagger-ui/index.html
 - Dynamic File Naming
 - File Storage System
 
+## Redis Cache Features
+
+- Redis Integration
+- Spring Cache
+- @Cacheable APIs
+- @CacheEvict Support
+- Docker Redis Container
+- Performance Optimization
 
 
 # 📌 Important Concepts Implemented
