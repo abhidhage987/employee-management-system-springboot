@@ -1,5 +1,7 @@
 package com.abhi.employeemanagement.controller;
 
+import java.time.LocalDateTime;
+
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -8,9 +10,13 @@ import org.springframework.web.bind.annotation.*;
 
 import com.abhi.employeemanagement.dto.AuthResponse;
 import com.abhi.employeemanagement.dto.LoginRequest;
+import com.abhi.employeemanagement.dto.LoginResponse;
+import com.abhi.employeemanagement.dto.RefreshTokenRequest;
 import com.abhi.employeemanagement.dto.RegisterRequest;
+import com.abhi.employeemanagement.entity.RefreshToken;
 import com.abhi.employeemanagement.entity.Role;
 import com.abhi.employeemanagement.entity.User;
+import com.abhi.employeemanagement.repository.RefreshTokenRepository;
 import com.abhi.employeemanagement.repository.UserRepository;
 import com.abhi.employeemanagement.security.JwtService;
 
@@ -18,83 +24,116 @@ import com.abhi.employeemanagement.security.JwtService;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private UserRepository userRepository;
+	private UserRepository userRepository;
 
-    private PasswordEncoder passwordEncoder;
+	private PasswordEncoder passwordEncoder;
 
-    private JwtService jwtService;
+	private RefreshTokenRepository refreshTokenRepository;
 
-    public AuthController(
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            JwtService jwtService) {
+	private JwtService jwtService;
 
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
-    }
+	public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
 
-    
-    @PostMapping("/register")
-    public ResponseEntity<String> register(
-            @RequestBody RegisterRequest request) {
+		this.userRepository = userRepository;
+		this.passwordEncoder = passwordEncoder;
+		this.jwtService = jwtService;
+	}
 
-        User user = new User();
+	@PostMapping("/register")
+	public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
 
-        user.setName(request.getName());
+		User user = new User();
 
-        user.setEmail(request.getEmail());
+		user.setName(request.getName());
 
-        user.setPassword(
-                passwordEncoder.encode(
-                        request.getPassword()
-                )
-        );
+		user.setEmail(request.getEmail());
 
-        user.setRole(Role.USER);
+		user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        userRepository.save(user);
+		user.setRole(Role.USER);
 
-        return ResponseEntity.ok(
-                "User Registered Successfully"
-        );
-    }
+		userRepository.save(user);
 
-    
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(
-            @RequestBody LoginRequest request) {
+		return ResponseEntity.ok("User Registered Successfully");
+	}
 
-        User user =
-                userRepository.findByEmail(
-                                request.getEmail())
-                        .orElse(null);
+	@PostMapping("/login")
+	public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
 
-        if (user == null) {
+		User user = userRepository.findByEmail(request.getEmail()).orElse(null);
 
-            return ResponseEntity.badRequest()
-                    .build();
-        }
+		if (user == null) {
 
-        boolean passwordMatches =
-                passwordEncoder.matches(
-                        request.getPassword(),
-                        user.getPassword()
-                );
+			return ResponseEntity.badRequest().build();
+		}
 
-        if (!passwordMatches) {
+		boolean passwordMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
-            return ResponseEntity.badRequest()
-                    .build();
-        }
+		if (!passwordMatches) {
 
-        String token =
-                jwtService.generateToken(
-                        user.getEmail()
-                );
+			return ResponseEntity.badRequest().build();
+		}
 
-        return ResponseEntity.ok(
-                new AuthResponse(token)
-        );
-    }
+		String accessToken = jwtService.generateToken(user.getEmail());
+
+		String refreshTokenValue = jwtService.generateRefreshToken(user.getEmail());
+
+		RefreshToken refreshToken = new RefreshToken();
+
+		refreshToken.setToken(refreshTokenValue);
+
+		refreshToken.setUser(user);
+
+		refreshToken.setExpiryDate(
+
+				LocalDateTime.now().plusDays(7));
+
+		refreshTokenRepository.save(refreshToken);
+
+		return ResponseEntity.ok(
+
+				new LoginResponse(accessToken, refreshTokenValue));
+	}
+
+	@PostMapping("/refresh")
+	public ResponseEntity<?> refreshToken(
+
+			@RequestBody RefreshTokenRequest request) {
+
+		RefreshToken refreshToken =
+
+				refreshTokenRepository.findByToken(request.getRefreshToken()).orElse(null);
+
+		if (refreshToken == null) {
+
+			return ResponseEntity.badRequest().body("Invalid Refresh Token");
+		}
+
+		if (refreshToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+
+			return ResponseEntity.badRequest().body("Refresh Token Expired");
+		}
+
+		String accessToken = jwtService.generateToken(
+
+				refreshToken.getUser().getEmail());
+
+		return ResponseEntity.ok(new AuthResponse(accessToken));
+	}
+	
+	@PostMapping("/logout")
+	public ResponseEntity<String> logout(
+
+	        @RequestBody
+	        RefreshTokenRequest request) {
+
+	    refreshTokenRepository
+	            .deleteByToken(
+	                    request.getRefreshToken()
+	            );
+
+	    return ResponseEntity.ok(
+	            "Logged out successfully"
+	    );
+	}
 }

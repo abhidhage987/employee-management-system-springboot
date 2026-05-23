@@ -53,4 +53,23 @@ public class JwtService {
 
         return extractedEmail.equals(email);
     }
+    
+    
+    public String generateRefreshToken(
+            String email) {
+
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(
+
+                        new Date(
+                                System.currentTimeMillis()
+
+                                        + 1000L * 60 * 60 * 24 * 7
+                        )
+                )
+                .signWith(key)
+                .compact();
+    }
 }
