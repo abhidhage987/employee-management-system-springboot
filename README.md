@@ -344,6 +344,18 @@ http://localhost:8080/swagger-ui/index.html
 
 ---
 
+
+
+## File Upload Features
+
+- Resume Upload API
+- Image Upload API
+- MultipartFile Handling
+- Dynamic File Naming
+- File Storage System
+
+
+
 # 📌 Important Concepts Implemented
 
 * Dependency Injection
@@ -362,9 +374,6 @@ http://localhost:8080/swagger-ui/index.html
 
 # 🚀 Future Enhancements
 
-* Email Verification
-* OTP Authentication
-* File Upload
 * Redis Cache
 * Docker
 * CI/CD
