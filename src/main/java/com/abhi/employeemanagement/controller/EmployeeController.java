@@ -1,0 +1,105 @@
+package com.abhi.employeemanagement.controller;
+
+import java.util.List;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import com.abhi.employeemanagement.dto.EmployeeRequestDto;
+import com.abhi.employeemanagement.dto.EmployeeResponseDto;
+import com.abhi.employeemanagement.repository.EmployeeRepository;
+import com.abhi.employeemanagement.service.EmployeeService;
+import com.abhi.employeemanagement.util.ApiResponse;
+
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/api/employees")
+public class EmployeeController {
+
+	private EmployeeService employeeService;
+
+	private EmployeeRepository employeeRepository;
+
+	public EmployeeController(EmployeeService employeeService, EmployeeRepository employeeRepository) {
+
+		this.employeeService = employeeService;
+		this.employeeRepository = employeeRepository;
+	}
+
+	@PostMapping
+	public ResponseEntity<ApiResponse<EmployeeResponseDto>> addEmployee(
+			@Valid @RequestBody EmployeeRequestDto requestDto) {
+
+		EmployeeResponseDto response = employeeService.addEmployee(requestDto);
+
+		ApiResponse<EmployeeResponseDto> apiResponse = new ApiResponse<>("Employee Added Successfully",
+				HttpStatus.CREATED.value(), response);
+
+		return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
+	}
+
+	@GetMapping
+	public ResponseEntity<ApiResponse<List<EmployeeResponseDto>>> getAllEmployees() {
+
+		List<EmployeeResponseDto> employees = employeeService.getAllEmployees();
+
+		ApiResponse<List<EmployeeResponseDto>> response = new ApiResponse<>("Employees fetched successfully",
+				HttpStatus.OK.value(), employees);
+
+		return ResponseEntity.ok(response);
+	}
+
+	@GetMapping("/{id}")
+	public ResponseEntity<ApiResponse<EmployeeResponseDto>> getEmployeeById(@PathVariable Long id) {
+
+		EmployeeResponseDto employee = employeeService.getEmployeeById(id);
+
+		ApiResponse<EmployeeResponseDto> response = new ApiResponse<>("Employee fetched successfully",
+				HttpStatus.OK.value(), employee);
+
+		return ResponseEntity.ok(response);
+	}
+
+	@PutMapping("/{id}")
+	public ResponseEntity<ApiResponse<EmployeeResponseDto>> updateEmployee(@PathVariable Long id,
+
+			@Valid @RequestBody EmployeeRequestDto requestDto) {
+
+		EmployeeResponseDto employee = employeeService.updateEmployee(id, requestDto);
+
+		ApiResponse<EmployeeResponseDto> response = new ApiResponse<>("Employee updated successfully",
+				HttpStatus.OK.value(), employee);
+
+		return ResponseEntity.ok(response);
+	}
+
+	@DeleteMapping("/{id}")
+	public ResponseEntity<ApiResponse<String>> deleteEmployee(@PathVariable Long id) {
+
+		String message = employeeService.deleteEmployee(id);
+
+		ApiResponse<String> response = new ApiResponse<>(message, HttpStatus.OK.value(), message);
+
+		return ResponseEntity.ok(response);
+	}
+
+	@GetMapping("/pagination")
+	public ResponseEntity<?> pagination(@RequestParam(defaultValue = "0") int page,
+
+			@RequestParam(defaultValue = "5") int size,
+
+			@RequestParam(defaultValue = "id") String sortBy) {
+
+		return ResponseEntity.ok(employeeRepository.findAll(PageRequest.of(page, size, Sort.by(sortBy))));
+	}
+
+	@GetMapping("/search")
+	public ResponseEntity<?> searchByDepartment(@RequestParam String department) {
+
+		return ResponseEntity.ok(employeeRepository.findByDepartment(department));
+	}
+}
