@@ -19,6 +19,7 @@ import com.abhi.employeemanagement.entity.User;
 import com.abhi.employeemanagement.repository.RefreshTokenRepository;
 import com.abhi.employeemanagement.repository.UserRepository;
 import com.abhi.employeemanagement.security.JwtService;
+import com.abhi.employeemanagement.service.EmailService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -30,18 +31,20 @@ public class AuthController {
 
 	private JwtService jwtService;
 	private RefreshTokenRepository refreshTokenRepository;
+	private EmailService emailService;
 
 
 	public AuthController(
 	        UserRepository userRepository,
 	        PasswordEncoder passwordEncoder,
 	        JwtService jwtService,
-	        RefreshTokenRepository refreshTokenRepository) {
+	        RefreshTokenRepository refreshTokenRepository,EmailService emailService) {
 
 	    this.userRepository = userRepository;
 	    this.passwordEncoder = passwordEncoder;
 	    this.jwtService = jwtService;
 	    this.refreshTokenRepository = refreshTokenRepository;
+	    this.emailService = emailService;
 	}
 	
 	@PostMapping("/register")
@@ -139,6 +142,23 @@ public class AuthController {
 
 	    return ResponseEntity.ok(
 	            "Logged out successfully"
+	    );
+	}
+	
+	@GetMapping("/send-mail")
+	public ResponseEntity<String> sendMail() {
+
+	    emailService.sendEmail(
+
+	            "abhidhage987@gmail.com",
+
+	            "Spring Boot Email Test",
+
+	            "Email sent successfully from Spring Boot"
+	    );
+
+	    return ResponseEntity.ok(
+	            "Email Sent Successfully"
 	    );
 	}
 }
