@@ -1,5 +1,7 @@
 package com.abhi.employeemanagement.service.impl;
 
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,127 +19,100 @@ import com.abhi.employeemanagement.service.EmployeeService;
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
 
-    private static final Logger logger =
-            LoggerFactory.getLogger(
-                    EmployeeServiceImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(EmployeeServiceImpl.class);
 
-    private EmployeeRepository employeeRepository;
+	private EmployeeRepository employeeRepository;
 
-    public EmployeeServiceImpl(
-            EmployeeRepository employeeRepository) {
+	public EmployeeServiceImpl(EmployeeRepository employeeRepository) {
 
-        this.employeeRepository = employeeRepository;
-    }
+		this.employeeRepository = employeeRepository;
+	}
 
-    @Override
-    public EmployeeResponseDto addEmployee(
-            EmployeeRequestDto requestDto) {
+	@CacheEvict(value = "employees", allEntries = true)
+	@Override
+	public EmployeeResponseDto addEmployee(EmployeeRequestDto requestDto) {
 
-        logger.info("Adding employee");
+		logger.info("Adding employee");
 
-        Employee employee = new Employee();
+		Employee employee = new Employee();
 
-        employee.setName(requestDto.getName());
-        employee.setEmail(requestDto.getEmail());
-        employee.setDepartment(
-                requestDto.getDepartment());
-        employee.setSalary(requestDto.getSalary());
-        employee.setJoiningDate(
-                requestDto.getJoiningDate());
+		employee.setName(requestDto.getName());
+		employee.setEmail(requestDto.getEmail());
+		employee.setDepartment(requestDto.getDepartment());
+		employee.setSalary(requestDto.getSalary());
+		employee.setJoiningDate(requestDto.getJoiningDate());
 
-        Employee savedEmployee =
-                employeeRepository.save(employee);
+		Employee savedEmployee = employeeRepository.save(employee);
 
-        return mapToResponse(savedEmployee);
-    }
+		return mapToResponse(savedEmployee);
+	}
 
-    @Override
-    public List<EmployeeResponseDto>
-    getAllEmployees() {
+	@Cacheable(value = "employees")
+	@Override
+	public List<EmployeeResponseDto> getAllEmployees() {
 
-        List<Employee> employees =
-                employeeRepository.findAll();
+		List<Employee> employees = employeeRepository.findAll();
 
-        List<EmployeeResponseDto> responseList =
-                new ArrayList<>();
+		List<EmployeeResponseDto> responseList = new ArrayList<>();
 
-        for (Employee employee : employees) {
+		for (Employee employee : employees) {
 
-            responseList.add(
-                    mapToResponse(employee));
-        }
+			responseList.add(mapToResponse(employee));
+		}
 
-        return responseList;
-    }
+		return responseList;
+	}
 
-    @Override
-    public EmployeeResponseDto
-    getEmployeeById(Long id) {
+	@Override
+	public EmployeeResponseDto getEmployeeById(Long id) {
 
-        Employee employee =
-                employeeRepository.findById(id)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Employee not found with ID: "
-                                                + id));
+		Employee employee = employeeRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + id));
 
-        return mapToResponse(employee);
-    }
+		return mapToResponse(employee);
+	}
 
-    @Override
-    public EmployeeResponseDto updateEmployee(
-            Long id,
-            EmployeeRequestDto requestDto) {
+	@CacheEvict(value = "employees", allEntries = true)
+	@Override
+	public EmployeeResponseDto updateEmployee(Long id, EmployeeRequestDto requestDto) {
 
-        Employee employee =
-                employeeRepository.findById(id)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Employee not found with ID: "
-                                                + id));
+		Employee employee = employeeRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + id));
 
-        employee.setName(requestDto.getName());
-        employee.setEmail(requestDto.getEmail());
-        employee.setDepartment(
-                requestDto.getDepartment());
-        employee.setSalary(requestDto.getSalary());
-        employee.setJoiningDate(
-                requestDto.getJoiningDate());
+		employee.setName(requestDto.getName());
+		employee.setEmail(requestDto.getEmail());
+		employee.setDepartment(requestDto.getDepartment());
+		employee.setSalary(requestDto.getSalary());
+		employee.setJoiningDate(requestDto.getJoiningDate());
 
-        Employee updatedEmployee =
-                employeeRepository.save(employee);
+		Employee updatedEmployee = employeeRepository.save(employee);
 
-        return mapToResponse(updatedEmployee);
-    }
+		return mapToResponse(updatedEmployee);
+	}
 
-    @Override
-    public String deleteEmployee(Long id) {
+	@CacheEvict(value = "employees", allEntries = true)
+	@Override
+	public String deleteEmployee(Long id) {
 
-        Employee employee =
-                employeeRepository.findById(id)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Employee not found with ID: "
-                                                + id));
+		Employee employee = employeeRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + id));
 
-        employeeRepository.delete(employee);
+		employeeRepository.delete(employee);
 
-        return "Employee Deleted Successfully";
-    }
+		return "Employee Deleted Successfully";
+	}
 
-    private EmployeeResponseDto
-    mapToResponse(Employee employee) {
+	private EmployeeResponseDto mapToResponse(Employee employee) {
 
-        EmployeeResponseDto dto =
-                new EmployeeResponseDto();
+		EmployeeResponseDto dto = new EmployeeResponseDto();
 
-        dto.setId(employee.getId());
-        dto.setName(employee.getName());
-        dto.setEmail(employee.getEmail());
-        dto.setDepartment(employee.getDepartment());
-        dto.setSalary(employee.getSalary());
-        dto.setJoiningDate(employee.getJoiningDate());
+		dto.setId(employee.getId());
+		dto.setName(employee.getName());
+		dto.setEmail(employee.getEmail());
+		dto.setDepartment(employee.getDepartment());
+		dto.setSalary(employee.getSalary());
+		dto.setJoiningDate(employee.getJoiningDate());
 
-        return dto;
-    }
+		return dto;
+	}
 }

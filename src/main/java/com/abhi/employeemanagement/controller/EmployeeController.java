@@ -1,5 +1,13 @@
 package com.abhi.employeemanagement.controller;
 
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+
+import org.springframework.http.HttpHeaders;
 import java.util.List;
 
 import org.springframework.data.domain.PageRequest;
@@ -119,5 +127,42 @@ public class EmployeeController {
 		return ResponseEntity.ok(
 
 				"File uploaded successfully : " + fileName);
+	}
+	
+	@GetMapping("/download/{fileName}")
+	public ResponseEntity<Resource> downloadFile(
+
+	        @PathVariable
+	        String fileName) {
+
+	    Path path = Paths.get(
+	            "uploads/" + fileName);
+
+	    Resource resource;
+
+	    try {
+
+	        resource = new UrlResource(
+	                path.toUri());
+
+	    } catch (Exception e) {
+
+	        throw new RuntimeException(
+	                "File not found");
+	    }
+
+	    return ResponseEntity.ok()
+
+	            .header(
+
+	                    HttpHeaders
+	                            .CONTENT_DISPOSITION,
+
+	                    "attachment; filename=\""
+	                            + resource.getFilename()
+	                            + "\""
+	            )
+
+	            .body(resource);
 	}
 }

@@ -1,11 +1,12 @@
 package com.abhi.employeemanagement.dto;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
 import lombok.Data;
 
 @Data
-public class EmployeeResponseDto {
+public class EmployeeResponseDto implements Serializable {
 
     private Long id;
 

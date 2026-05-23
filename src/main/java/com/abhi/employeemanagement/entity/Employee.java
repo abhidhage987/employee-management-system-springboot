@@ -31,6 +31,19 @@ public class Employee {
     private Double salary;
 
     private LocalDate joiningDate;
+    
+    private String profileImage;
+    
+    
+    
+
+	public String getProfileImage() {
+		return profileImage;
+	}
+
+	public void setProfileImage(String profileImage) {
+		this.profileImage = profileImage;
+	}
 
 	public Long getId() {
 		return id;

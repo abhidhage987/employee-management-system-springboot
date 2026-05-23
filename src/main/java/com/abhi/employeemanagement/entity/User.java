@@ -18,6 +18,8 @@ public class User {
     private String email;
 
     private String password;
+    
+    private boolean enabled;
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -30,6 +32,8 @@ public class User {
                 String email,
                 String password,
                 Role role) {
+    	
+    	
 
         this.id = id;
         this.name = name;
@@ -38,7 +42,12 @@ public class User {
         this.role = role;
     }
 
-    public Long getId() {
+    public User(boolean enabled) {
+		super();
+		this.enabled = enabled;
+	}
+
+	public Long getId() {
         return id;
     }
 
@@ -77,4 +86,12 @@ public class User {
     public void setRole(Role role) {
         this.role = role;
     }
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 }
