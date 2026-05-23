@@ -7,11 +7,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.abhi.employeemanagement.dto.EmployeeRequestDto;
 import com.abhi.employeemanagement.dto.EmployeeResponseDto;
 import com.abhi.employeemanagement.repository.EmployeeRepository;
 import com.abhi.employeemanagement.service.EmployeeService;
+import com.abhi.employeemanagement.service.FileUploadService;
 import com.abhi.employeemanagement.util.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -24,10 +26,14 @@ public class EmployeeController {
 
 	private EmployeeRepository employeeRepository;
 
-	public EmployeeController(EmployeeService employeeService, EmployeeRepository employeeRepository) {
+	private FileUploadService fileUploadService;
+
+	public EmployeeController(EmployeeService employeeService, EmployeeRepository employeeRepository,
+			FileUploadService fileUploadService) {
 
 		this.employeeService = employeeService;
 		this.employeeRepository = employeeRepository;
+		this.fileUploadService = fileUploadService;
 	}
 
 	@PostMapping
@@ -101,5 +107,17 @@ public class EmployeeController {
 	public ResponseEntity<?> searchByDepartment(@RequestParam String department) {
 
 		return ResponseEntity.ok(employeeRepository.findByDepartment(department));
+	}
+
+	@PostMapping("/upload")
+	public ResponseEntity<String> uploadFile(
+
+			@RequestParam("file") MultipartFile file) {
+
+		String fileName = fileUploadService.uploadFile(file);
+
+		return ResponseEntity.ok(
+
+				"File uploaded successfully : " + fileName);
 	}
 }

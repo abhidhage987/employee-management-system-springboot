@@ -107,14 +107,16 @@ public class AuthController {
 
 		if (user == null) {
 
-			if (!user.isEnabled()) {
-
-				throw new RuntimeException("Please verify OTP first");
-			}
-
-			return ResponseEntity.badRequest().build();
+			return ResponseEntity.badRequest().body(null);
 		}
 
+		
+		if (!user.isEnabled()) {
+
+			throw new RuntimeException("Please verify OTP first");
+		}
+
+		
 		boolean passwordMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
 		if (!passwordMatches) {
@@ -272,70 +274,44 @@ public class AuthController {
 
 		return ResponseEntity.ok("OTP sent to email");
 	}
-	
+
 	@PostMapping("/reset-password")
 	public ResponseEntity<String> resetPassword(
 
-	        @RequestBody
-	        ResetPasswordRequest request) {
+			@RequestBody ResetPasswordRequest request) {
 
-	    OtpVerification otpVerification =
+		OtpVerification otpVerification =
 
-	            otpVerificationRepository
-	                    .findByEmail(
-	                            request.getEmail()
-	                    )
-	                    .orElse(null);
+				otpVerificationRepository.findByEmail(request.getEmail()).orElse(null);
 
-	    if (otpVerification == null) {
+		if (otpVerification == null) {
 
-	        return ResponseEntity
-	                .badRequest()
-	                .body("OTP not found");
-	    }
+			return ResponseEntity.badRequest().body("OTP not found");
+		}
 
-	    
-	    if (!otpVerification.getOtp()
-	            .equals(request.getOtp())) {
+		if (!otpVerification.getOtp().equals(request.getOtp())) {
 
-	        return ResponseEntity
-	                .badRequest()
-	                .body("Invalid OTP");
-	    }
+			return ResponseEntity.badRequest().body("Invalid OTP");
+		}
 
-	    
-	    if (otpVerification.getExpiryTime()
-	            .isBefore(LocalDateTime.now())) {
+		if (otpVerification.getExpiryTime().isBefore(LocalDateTime.now())) {
 
-	        return ResponseEntity
-	                .badRequest()
-	                .body("OTP Expired");
-	    }
+			return ResponseEntity.badRequest().body("OTP Expired");
+		}
 
-	    User user = userRepository
-	            .findByEmail(
-	                    request.getEmail()
-	            )
-	            .orElse(null);
+		User user = userRepository.findByEmail(request.getEmail()).orElse(null);
 
-	    if (user == null) {
+		if (user == null) {
 
-	        return ResponseEntity
-	                .badRequest()
-	                .body("User not found");
-	    }
+			return ResponseEntity.badRequest().body("User not found");
+		}
 
-	    
-	    user.setPassword(
+		user.setPassword(
 
-	            passwordEncoder.encode(
-	                    request.getNewPassword()
-	            )
-	    );
+				passwordEncoder.encode(request.getNewPassword()));
 
-	    userRepository.save(user);
+		userRepository.save(user);
 
-	    return ResponseEntity.ok(
-	            "Password Reset Successfully");
+		return ResponseEntity.ok("Password Reset Successfully");
 	}
 }
