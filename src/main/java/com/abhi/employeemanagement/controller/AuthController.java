@@ -28,17 +28,22 @@ public class AuthController {
 
 	private PasswordEncoder passwordEncoder;
 
+	private JwtService jwtService;
 	private RefreshTokenRepository refreshTokenRepository;
 
-	private JwtService jwtService;
 
-	public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+	public AuthController(
+	        UserRepository userRepository,
+	        PasswordEncoder passwordEncoder,
+	        JwtService jwtService,
+	        RefreshTokenRepository refreshTokenRepository) {
 
-		this.userRepository = userRepository;
-		this.passwordEncoder = passwordEncoder;
-		this.jwtService = jwtService;
+	    this.userRepository = userRepository;
+	    this.passwordEncoder = passwordEncoder;
+	    this.jwtService = jwtService;
+	    this.refreshTokenRepository = refreshTokenRepository;
 	}
-
+	
 	@PostMapping("/register")
 	public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
 
